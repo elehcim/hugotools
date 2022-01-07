@@ -6,6 +6,7 @@ import datetime
 import os
 import yaml
 import subprocess
+from shutil import copyfile
 
 HUGO_ROOT = os.getenv("HUGO_ROOT", default="")
 
@@ -47,10 +48,9 @@ pathURL="{img_path}"
 alt=""
 >}}}}\n""")
 
-def move_image(img_path, target_path=DEFAULT_IMG_PATH, name=DEFAULT_IMG_NAME):
-    raise NotImplementedError
-    # target = os.path.join(HUGO_ROOT, target_path, name)
-    # os.move(img_path, target)
+def copy_image(img_path, target_path=DEFAULT_IMG_PATH, name=DEFAULT_IMG_NAME):
+    target = os.path.join(HUGO_ROOT, target_path, name)
+    copyfile(img_path, target)
 
 def main(cli=None):
     args = parse_args(cli)
@@ -61,8 +61,9 @@ def main(cli=None):
         filename = args.filename
 
     full_path = os.path.join(HUGO_ROOT, "content/post", filename)
+
     if args.img is not None:
-        move_image(args.img)
+        copy_image(args.img)
 
     create_post(filename)
     img_text = get_image_text(os.path.join(DEFAULT_IMG_PATH, DEFAULT_IMG_NAME))
