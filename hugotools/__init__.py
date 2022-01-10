@@ -19,7 +19,7 @@ def parse_args(cli=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--filename", help=f"New file (default to {TODAY}.md)", default=None)
     parser.add_argument("--img", help="Image file to be moved", default=None)
-    parser.add_argument("-t", "--title", help="Title of the post")
+    parser.add_argument("-t", "--title", help="Title of the post", default=None)
     parser.add_argument("--tags", help="Tags to be put in the post metadata", default=None)
     parser.add_argument("-c", "--categories", nargs='+', help="Categories to be put in the post metadata", default=["jots"])
     args = parser.parse_args(cli)
@@ -32,8 +32,6 @@ def create_post(filename):
 
 
 def split_post_text(text, delimiter):
-    # It's a yaml
-    # https://gohugo.io/content-management/front-matter/
     first_line = text.find(delimiter)
     second_line = text.find(delimiter, first_line+len(delimiter))
 
@@ -64,9 +62,11 @@ def main(cli=None):
 
     if args.img is not None:
         copy_image(args.img)
+        img_text = get_image_text(os.path.join(DEFAULT_IMG_PATH, DEFAULT_IMG_NAME))
+    else:
+        img_text = ""
 
     create_post(filename)
-    img_text = get_image_text(os.path.join(DEFAULT_IMG_PATH, DEFAULT_IMG_NAME))
 
     with open(full_path, "r") as original:
         text = original.read()
@@ -76,10 +76,14 @@ def main(cli=None):
 
     delimiter = "---\n"
     frontmatter, rest_content = split_post_text(text, delimiter)
+
+    # Frontmatter is a yaml: https://gohugo.io/content-management/front-matter/
     metadata = yaml.safe_load(frontmatter)
 
     metadata["categories"] = args.categories
-    metadata["title"] = args.title
+
+    if args.title is not None:
+        metadata["title"] = args.title
 
     output_metadata = yaml.safe_dump(metadata)
 
